@@ -8,39 +8,32 @@ from selenium import webdriver
 #Reuters 
 r = requests.get("https://www.reuters.com/markets")
 soup = BeautifulSoup(r.content, 'lxml')
+classes = ['Text__text___3eVx1j Text__white___2ncio9 Text__medium___1ocDap Text__heading_2___sUlNJP Heading__base___1dDlXY Heading__heading_2___3f_bIW Jumbotron__title___GICxhj',
+ 'Text__text___3eVx1j Text__dark-grey___AS2I_p Text__medium___1ocDap Text__heading_6___m3CqfX Heading__base___1dDlXY Heading__heading_6___1ON736 MediaStoryCard__heading___1K4tAO']
 
 final_headlines = []
 final_links= []
+# Reuters 
+for item in classes:
+    news_cards = soup.find_all('span', class_= item)
+    for news in news_cards:
+        final_headlines.append(news.text.strip() +'.')
 
-#Reuters big news cards
-news_cards = soup.find_all('div', class_= 'moduleBody')
-for card in news_cards:
-    headlines = card.find_all('a')
-    for headline in headlines:
-        if headline.text != '':
-            final_headlines.append(headline.text.strip() +'.')
-            final_links.append('reuters.com' + str(headline['href']))
+classes = ['MediaStoryCard__basic_hero___fSAEnM', 'MediaStoryCard__no_meta___3iQjxw', 'MediaStoryCard__hub___2ECKOi story-card']
+for item in classes:
+    headlines = soup.find_all('a', class_ = item)
+    for link in headlines:
+        final_links.append('reuters.com' + str(link['href']))
 
-#Reuters smaller news headlines below
-us_news = soup.find_all('section',id = 'tab-markets-us')
-for news in us_news:
-    titles = news.find_all('a')
-    for title in titles:
-        if title.text.strip() != '':
-            final_headlines.append(title.text.strip() +'.')
-            final_links.append('reuters.com' + str(title['href']))
 
 #CNBC
 r = requests.get("https://www.cnbc.com/world/?region=world")
 soup = BeautifulSoup(r.content, 'lxml')
 
-finance_news = soup.find_all('div', class_= 'FeaturedNewsHero-container')
+finance_news = soup.find_all('a', class_= 'LatestNews-headline')
 for fin in finance_news:
-    the_titles = fin.find_all('a')
-    for foo in the_titles:  
-        if foo.text != '':
-            final_headlines.append(foo.text.strip() +'.')
-            final_links.append(foo['href'])
+        final_headlines.append(fin.text.strip() +'.')
+        final_links.append(fin['href'][12:])
 
 #Coindesk
 r = requests.get("https://coindesk.com/")
@@ -70,24 +63,22 @@ driver.get(url)
 driver.implicitly_wait(delay)
 html = driver.page_source
 soup = BeautifulSoup(html, 'lxml')
-coins = soup.find_all('div', class_ = 'price-navigationstyles__PricingItemWrapper-sc-1okl49q-0 ggXAni')
+coins = soup.find_all('div', class_ = 'price-navigationstyles__PricingItemWrapper-sc-1okl49q-0')
 prices = []
 for coin in coins:
     if coin.a['href'] == "/price/bitcoin/" or coin.a['href'] == "/price/ethereum/":
         for element in coin.div:
             prices.append(element.text)
 
+
 r = requests.get("https://www.marketwatch.com/investing/future/sp%20500%20futures")
 soup = BeautifulSoup(r.content, 'lxml')
 
 futures = soup.find_all('div', class_ = 'intraday__data')
-for value in futures:
-    future_index = value.find('bg-quote', field= 'Last')
-    future_change = value.find('bg-quote', field= 'percentchange')
-    if len(future_change.text) == 5:
-        future_ch = '+' + future_change.text
-    else:
-        future_ch = future_change.text
+for future in futures:
+    future_index = future.find('bg-quote', class_ = 'value')
+    future_change = future.find('span', class_ = 'change--percent--q')
+
 
 # url = 'https://messari.io/'
 # delay = 30
@@ -163,7 +154,7 @@ with open(f'C:\\Users\\Asus\\Documents\\Treehouse\\news.txt', 'w', encoding='utf
     f.write(f'Singapore Time: {current_time.strftime("%H:%M")} am\n\n')
     f.write(f'BTC: {prices[0]} ({prices[1]})\n')
     f.write(f'ETH: {prices[2]} ({prices[3]})\n')
-    f.write(f'S&P500 Futures: ${future_index.text} ({future_ch})\n')
+    f.write(f'S&P500 Futures: ${future_index.text} ({future_change.text})\n')
     
     f.write('\nTraditional Finance\n')
     for i in range(len(final_headlines)):
