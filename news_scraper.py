@@ -25,15 +25,31 @@ for item in classes:
     for link in headlines:
         final_links.append('reuters.com' + str(link['href']))
 
+#Reuters 
+sites = ['https://www.reuters.com/markets/', 'https://www.reuters.com/markets/rates-bonds/', 'https://www.reuters.com/markets/us/', 'https://www.reuters.com/markets/stocks/', 'https://www.reuters.com/markets/macromatters/']
+for site in sites:
+    r = requests.get(site)
+    soup = BeautifulSoup(r.content, 'lxml')
+    final_headlines = []
+    final_links= []
+    # Reuters 
+    news_cards = soup.find_all('a', class_= 'MediaStoryCard__heading___1K4tAO')
+    for news in news_cards:
+        final_headlines.append(news.text.strip() +'.')
+        final_links.append('reuters.com' + str(news['href']))
+
 
 #CNBC
 r = requests.get("https://www.cnbc.com/world/?region=world")
 soup = BeautifulSoup(r.content, 'lxml')
 
-finance_news = soup.find_all('a', class_= 'LatestNews-headline')
+finance_news = soup.find_all('div', class_= 'FeaturedNewsHero-container')
 for fin in finance_news:
-        final_headlines.append(fin.text.strip() +'.')
-        final_links.append(fin['href'][12:])
+    the_titles = fin.find_all('a')
+    for foo in the_titles:  
+        if foo.text != '':
+            final_headlines.append(foo.text.strip() +'.')
+            final_links.append(foo['href'])
 
 #Coindesk
 r = requests.get("https://coindesk.com/")
@@ -57,7 +73,7 @@ for idea in crypto_news:
 url = 'https://www.coindesk.com/'
 delay = 30
 
-os.environ["PATH"] += os.pathsep + r'C:/SeleniumDrivers'
+os.environ["PATH"] += os.pathsep + r'C:\\Users\\peh_s\\OneDrive\\Documents\\Selenium Drivers'
 driver = webdriver.Chrome()
 driver.get(url)
 driver.implicitly_wait(delay)
@@ -137,7 +153,7 @@ current_time = datetime.now() + timedelta(minutes=10)
 url = "https://apeboard.finance/protocols"
 delay = 30
 
-os.environ["PATH"] += os.pathsep + r'C:/SeleniumDrivers'
+os.environ["PATH"] += os.pathsep + r'C:\\Users\\peh_s\\OneDrive\\Documents\\Selenium Drivers'
 driver = webdriver.Chrome()
 driver.get(url)
 driver.implicitly_wait(delay)
@@ -148,7 +164,7 @@ ape_board =  soup.find('h1')
 protocol_count = ape_board.text[-4:-1]
 
 
-with open(f'C:\\Users\\Asus\\Documents\\Treehouse\\news.txt', 'w', encoding='utf-8') as f:
+with open(f'C:\\Users\\peh_s\\Documents\\Treehouse\\news.txt', 'w', encoding='utf-8') as f:
     f.write('Morning News\n')
     f.write(f'{date.today().strftime("%B %d, %Y")}\n')
     f.write(f'Singapore Time: {current_time.strftime("%H:%M")} am\n\n')
